@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusCraft - 업무 타이머 & 스터디 플래너</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        batang: ['Gowun Batang', 'serif'],
+                        handwriting: ['Nanum Pen Script', 'cursive'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Planner Themes */
+        .theme-default {
+            --bg-planner: #ffffff;
+            --border-planner: #e5e7eb;
+            --accent-planner: #3b82f6;
+            --text-planner: #1f2937;
+            --header-planner: #f3f4f6;
+        }
+        .theme-pastel-pink {
+            --bg-planner: #fff5f7;
+            --border-planner: #fbcfe8;
+            --accent-planner: #ec4899;
+            --text-planner: #831843;
+            --header-planner: #fce7f3;
+        }
+        .theme-midnight-navy {
+            --bg-planner: #0f172a;
+            --border-planner: #334155;
+            --accent-planner: #38bdf8;
+            --text-planner: #f8fafc;
+            --header-planner: #1e293b;
+        }
+        .theme-vintage-kraft {
+            --bg-planner: #f5efe6;
+            --border-planner: #d7c4b7;
+            --accent-planner: #b45309;
+            --text-planner: #451a03;
+            --header-planner: #e8ded1;
+        }
+        .theme-sage-green {
+            --bg-planner: #f2f7f4;
+            --border-planner: #bbf7d0;
+            --accent-planner: #16a34a;
+            --text-planner: #14532d;
+            --header-planner: #e6f4ea;
+        }
+
+        .planner-container {
+            background-color: var(--bg-planner);
+            border-color: var(--border-planner);
+            color: var(--text-planner);
+        }
+        .planner-header {
+            background-color: var(--header-planner);
+            border-color: var(--border-planner);
+        }
+        .planner-accent {
+            color: var(--accent-planner);
+        }
+        .planner-border {
+            border-color: var(--border-planner);
+        }
+
+        /* Grid lines for Study Planner feel */
+        .paper-grid {
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+
+        /* Timer Themes */
+        .timer-theme-default {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #0f172a;
+        }
+        .timer-theme-default .ring-color { stroke: #4f46e5; }
+        .timer-theme-default .timer-text { color: #0f172a; }
+
+        .timer-theme-cyberpunk {
+            background: #090d16;
+            border-color: #06b6d4;
+            color: #22d3ee;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+        }
+        .timer-theme-cyberpunk .ring-color { stroke: #f43f5e; }
+        .timer-theme-cyberpunk .timer-text { color: #22d3ee; text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); }
+
+        .timer-theme-minimal {
+            background: #18181b;
+            border-color: #27272a;
+            color: #f4f4f5;
+        }
+        .timer-theme-minimal .ring-color { stroke: #ffffff; }
+        .timer-theme-minimal .timer-text { color: #ffffff; }
+
+        .timer-theme-retro {
+            background: #2e1005;
+            border-color: #f59e0b;
+            color: #fde68a;
+        }
+        .timer-theme-retro .ring-color { stroke: #f59e0b; }
+        .timer-theme-retro .timer-text { color: #fef3c7; }
+
+        .timer-theme-pastel {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+        .timer-theme-pastel .ring-color { stroke: #10b981; }
+        .timer-theme-pastel .timer-text { color: #065f46; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Header / App Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                    <i class="fa-solid me-0.5 fa-stopwatch text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-900 leading-none">FocusCraft</h1>
+                    <span class="text-xs text-slate-500 font-medium">업무 집중 & 스터디 플래너</span>
+                </div>
+            </div>
+
+            <!-- Coin Balance Indicator -->
+            <div class="flex items-center bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full shadow-sm">
+                <div class="w-6 h-6 rounded-full bg-amber-400 text-amber-900 flex items-center justify-center text-xs font-bold mr-2 shadow-inner">
+                    🪙
+                </div>
+                <span class="text-xs text-amber-800 font-semibold mr-1">코인:</span>
+                <span id="user-coin-count" class="font-extrabold text-amber-900 text-sm">0</span>
+            </div>
+        </div>
+
+        <!-- Tab Navigation Bar -->
+        <div class="bg-white border-t border-slate-100 px-4">
+            <nav class="max-w-6xl mx-auto flex space-x-2 sm:space-x-6 overflow-x-auto no-scrollbar" aria-label="Tabs">
+                <button onclick="switchTab('timer')" id="tab-btn-timer" class="tab-btn py-3 px-3 border-b-2 font-medium text-sm flex items-center gap-2 text-indigo-600 border-indigo-600">
+                    <i class="fa-solid fa-clock"></i> 타이머
+                </button>
+                <button onclick="switchTab('planner')" id="tab-btn-planner" class="tab-btn py-3 px-3 border-b-2 font-medium text-sm flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300">
+                    <i class="fa-solid fa-book-open"></i> 스터디 플래너
+                </button>
+                <button onclick="switchTab('shop')" id="tab-btn-shop" class="tab-btn py-3 px-3 border-b-2 font-medium text-sm flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300">
+                    <i class="fa-solid fa-store"></i> 디자인 상점
+                </button>
+                <button onclick="switchTab('restrict')" id="tab-btn-restrict" class="tab-btn py-3 px-3 border-b-2 font-medium text-sm flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-700 hover:border-slate-300">
+                    <i class="fa-solid fa-shield-halved"></i> 차단/제약 설정
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- 1. TIMER TAB VIEW -->
+        <section id="tab-content-timer" class="space-y-6">
+            <!-- Mode Toggle Header -->
+            <div class="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">타이머 설정</h2>
+                    <p class="text-xs text-slate-500">집중할 모드를 선택하고 목표 시간을 설정하세요.</p>
+                </div>
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button id="mode-single-btn" onclick="setTimerMode('single')" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition">
+                        단일 타이머
+                    </button>
+                    <button id="mode-pomodoro-btn" onclick="setTimerMode('pomodoro')" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">
+                        반복 루프 (공부/휴식)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Timer Setup Panel -->
+            <div id="single-timer-setup" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <label class="block text-sm font-semibold text-slate-700">사전 설정 시간 선택</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="selectPresetTime(15)" class="preset-btn py-3 px-4 rounded-xl border-2 border-slate-200 font-bold text-slate-700 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                        15분
+                    </button>
+                    <button onclick="selectPresetTime(30)" class="preset-btn py-3 px-4 rounded-xl border-2 border-indigo-600 bg-indigo-50 font-bold text-indigo-700 transition">
+                        30분
+                    </button>
+                    <button onclick="selectPresetTime(60)" class="preset-btn py-3 px-4 rounded-xl border-2 border-slate-200 font-bold text-slate-700 hover:border-indigo-500 hover:bg-indigo-50/50 transition">
+                        60분
+                    </button>
+                </div>
+
+                <div class="pt-2">
+                    <label for="custom-single-minutes" class="block text-xs font-semibold text-slate-500 mb-1">사용자 정의 설정 (최소 10분 이상)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="custom-single-minutes" min="10" placeholder="분 입력 (예: 45)" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="applyCustomSingleTime()" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-900 transition">
+                            적용
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pomodoro / Loop Setup Panel (Hidden by default) -->
+            <div id="pomodoro-timer-setup" class="hidden bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="pomo-work-min" class="block text-xs font-semibold text-slate-600 mb-1">공부 시간 (m분)</label>
+                        <input type="number" id="pomo-work-min" value="25" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="pomo-rest-min" class="block text-xs font-semibold text-slate-600 mb-1">휴식 시간 (n분)</label>
+                        <input type="number" id="pomo-rest-min" value="5" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="pomo-count" class="block text-xs font-semibold text-slate-600 mb-1">반복 횟수 (k회)</label>
+                        <input type="number" id="pomo-count" value="4" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500">* 반복 타이머는 지정한 공부 및 휴식 시간이 번갈아 진행됩니다.</p>
+            </div>
+
+            <!-- Main Display Card -->
+            <div id="main-timer-card" class="timer-theme-default rounded-3xl p-8 border shadow-lg text-center relative overflow-hidden flex flex-col items-center justify-center transition-all duration-300">
+                
+                <!-- Status Badge -->
+                <div class="mb-4">
+                    <span id="timer-status-badge" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
+                        준비됨
+                    </span>
+                    <span id="pomo-cycle-badge" class="hidden ml-2 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">
+                        1 / 4 세트
+                    </span>
+                </div>
+
+                <!-- Big Countdown Display -->
+                <div class="relative w-64 h-64 my-4 flex items-center justify-center">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="44" stroke-width="8" class="opacity-20 stroke-current" fill="transparent"/>
+                        <circle id="timer-progress-circle" cx="50" cy="50" r="44" stroke-width="8" 
+                                stroke-dasharray="276.46" stroke-dashoffset="0"
+                                stroke-linecap="round" class="ring-color stroke-current transition-all duration-1000 ease-linear" fill="transparent"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="timer-display" class="timer-text text-5xl font-black tracking-tight font-mono">30:00</span>
+                        <span id="timer-subtext" class="text-xs opacity-70 font-medium mt-1">목표 집중 시간</span>
+                    </div>
+                </div>
+
+                <!-- Live Reward Earn Counter -->
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 mb-6">
+                    <i class="fa-solid fa-coins text-amber-500"></i>
+                    <span>이번 세션 획득 예정 코인: <strong id="session-coin-preview" class="text-amber-500">300</strong> 코인 (5분당 50코인)</span>
+                </div>
+
+                <!-- Timer Controls -->
+                <div class="flex items-center gap-4 w-full max-w-xs">
+                    <button id="timer-start-btn" onclick="toggleTimer()" class="flex-1 py-3.5 px-6 rounded-2xl bg-indigo-600 text-white font-bold text-base shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition">
+                        <i class="fa-solid fa-play mr-2"></i> 시작
+                    </button>
+                    <button id="timer-stop-btn" onclick="stopTimer()" disabled class="px-5 py-3.5 rounded-2xl bg-slate-100 text-slate-400 font-bold text-base hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                        <i class="fa-solid fa-square mr-1"></i> 중단
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. STUDY PLANNER TAB VIEW -->
+        <section id="tab-content-planner" class="hidden space-y-6">
+            <!-- Paper-styled Study Planner Container -->
+            <div id="planner-paper" class="theme-default planner-container paper-grid rounded-3xl p-6 sm:p-8 border-2 shadow-xl transition-all duration-300">
+                
+                <!-- Planner Header Block -->
+                <div class="planner-header rounded-2xl p-5 border mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-extrabold tracking-wider uppercase px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-700">DAILY STUDY PLANNER</span>
+                            <span id="planner-date-display" class="text-xs font-semibold opacity-70">2026.09.18 (금)</span>
+                        </div>
+                        <h2 class="text-2xl font-black tracking-tight font-batang">오늘의 집중 달성 기록</h2>
+                    </div>
+
+                    <!-- D-Day & Total Focus Time -->
+                <div class="flex items-center gap-4 text-right">
+                    <div class="bg-white/70 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-200/50">
+                        <span class="text-xs opacity-60 block">총 집중 시간</span>
+                        <span id="total-focus-time-display" class="font-bold text-sm text-indigo-600">00시간 00분</span>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur px-3 py-1.5 rounded-xl border border-slate-200/50 flex flex-col items-end">
+                        <span class="text-xs opacity-60 block">목표 D-DAY</span>
+                        <button onclick="openDDayModal()" id="dday-display-btn" class="font-extrabold text-sm text-rose-500 hover:text-rose-600 flex items-center gap-1.5 transition bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200 shadow-sm cursor-pointer">
+                            <span id="planner-dday-tag">D-100</span>
+                            <i class="fa-solid fa-calendar-days text-xs text-rose-400"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Quote / Goal Bar -->
+                <div class="mb-6 bg-white/60 p-4 rounded-xl border planner-border flex items-center gap-3">
+                    <i class="fa-solid fa-quote-left text-indigo-400 text-lg"></i>
+                    <input type="text" id="planner-daily-goal" placeholder="오늘의 핵심 목표 및 다짐을 작성하세요..." class="w-full bg-transparent border-none text-sm font-semibold focus:outline-none placeholder:text-slate-400">
+                </div>
+
+                <!-- Planner Main Grid (To-Do List & Time Table) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Task To-Do List (2 Columns on wide screens) -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex items-center justify-between border-b pb-2 planner-border">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-indigo-500"></i> 할 일 목록 (Task List)
+                            </h3>
+                            <button onclick="addPlannerTask()" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> 항목 추가
+                            </button>
+                        </div>
+
+                        <!-- Task Items List -->
+                        <div id="planner-task-container" class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                            <!-- Tasks will be rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Time Schedule / Reflection -->
+                    <div class="space-y-4">
+                        <div class="border-b pb-2 planner-border">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-indigo-500"></i> 하루 한 줄 피드백
+                            </h3>
+                        </div>
+                        <textarea id="planner-reflection" rows="8" placeholder="오늘 집중도, 개선할 점, 스케줄 이행 소감을 자유롭게 적어보세요..." class="w-full bg-white/60 border rounded-xl p-3 text-sm planner-border focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"></textarea>
+
+                        <div class="bg-white/80 rounded-xl p-4 border planner-border space-y-2">
+                            <span class="text-xs font-bold block text-slate-500">오늘의 종합 달성률</span>
+                            <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                <div id="planner-progress-bar" class="bg-indigo-600 h-full w-0 transition-all duration-500"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-500 font-semibold pt-1">
+                                <span>완료율: <strong id="planner-completion-percent">0%</strong></span>
+                                <span id="planner-completed-count">0 / 0 완료</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. CUSTOM DESIGN SHOP TAB VIEW -->
+        <section id="tab-content-shop" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">디자인 커스텀 상점</h2>
+                    <p class="text-xs text-slate-500">집중 시간을 통해 모은 코인으로 타이머 & 스터디 플래너 테마를 구매하고 미리보기하세요!</p>
+                </div>
+                <div class="flex items-center gap-2 bg-amber-100 text-amber-900 px-4 py-2 rounded-xl font-bold text-sm">
+                    <span>🪙</span>
+                    <span id="shop-coin-display">0</span> 코인 보유 중
+                </div>
+            </div>
+
+            <!-- Shop Category Filter Tabs -->
+            <div class="flex items-center space-x-2 border-b border-slate-200 pb-2">
+                <button onclick="setShopCategory('all')" id="shop-cat-all" class="shop-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition">
+                    전체 보기
+                </button>
+                <button onclick="setShopCategory('planner')" id="shop-cat-planner" class="shop-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                    📚 스터디 플래너 테마
+                </button>
+                <button onclick="setShopCategory('timer')" id="shop-cat-timer" class="shop-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                    ⏱️ 타이머 시트 테마
+                </button>
+            </div>
+
+            <!-- Shop Items Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="shop-items-grid">
+                <!-- Shop items generated via JS -->
+            </div>
+        </section>
+
+        <!-- 4. APP RESTRICTION SETTINGS TAB VIEW -->
+        <section id="tab-content-restrict" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">집중 방해 제약 설정</h2>
+                    <p class="text-xs text-slate-500">타이머 작동 중 집중을 방해하는 요소나 스마트폰 앱 사용을 통제합니다.</p>
+                </div>
+
+                <!-- Mode Select Radio Group -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <label class="relative flex p-4 rounded-xl border-2 cursor-pointer border-indigo-600 bg-indigo-50/40" id="mode-strict-box">
+                        <input type="radio" name="restrict-mode" value="strict" checked onchange="updateRestrictMode('strict')" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-slate-900">🚫 전체 폰 사용 금지 (Strict Focus)</span>
+                            <span class="block text-xs text-slate-500 mt-1">타이머 화면을 이탈하거나 가상 차단 앱을 터치하면 즉시 타이머 화면으로 강제 유도됩니다.</span>
+                        </div>
+                    </label>
+
+                    <label class="relative flex p-4 rounded-xl border-2 cursor-pointer border-slate-200" id="mode-apps-box">
+                        <input type="radio" name="restrict-mode" value="apps" onchange="updateRestrictMode('apps')" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                        <div class="ml-3">
+                            <span class="block text-sm font-bold text-slate-900">📱 특정 앱 차단 (App Selective Block)</span>
+                            <span class="block text-xs text-slate-500 mt-1">목록에서 지정한 차단 대상 앱만 집중 모드 중 사용을 제한합니다.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- App List Panel -->
+            <div id="blocked-apps-panel" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center justify-between">
+                    <span>차단할 앱 목록 선택</span>
+                    <span class="text-xs text-slate-400 font-normal">체크된 앱은 타이머 중 실행 시 바로 차단됩니다.</span>
+                </h3>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="app-checkbox-list">
+                    <!-- Apps dynamically inserted -->
+                </div>
+            </div>
+
+            <!-- Interactive Smartphone App Switcher Simulator -->
+            <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                        <span class="text-xs font-mono text-slate-400 ml-2">스마트폰 딴짓 차단 시뮬레이터</span>
+                    </div>
+                    <span class="text-xs text-indigo-400 bg-indigo-950 px-2.5 py-1 rounded-md font-mono">가상 테스트 환경</span>
+                </div>
+                <p class="text-xs text-slate-400">
+                    타이머가 작동 중일 때 아래 가상 앱 아이콘을 클릭하여 차단 시스템 동작 상태를 직접 시험해볼 수 있습니다.
+                </p>
+                
+                <div class="grid grid-cols-4 sm:grid-cols-6 gap-4 pt-2" id="simulated-phone-apps">
+                    <!-- Simulated phone apps dynamically created -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: Timer Completion Popup -->
+    <div id="modal-timer-complete" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden animate-fade-in p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-5 border border-slate-100 relative">
+            <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center text-3xl mx-auto shadow-inner">
+                🎉
+            </div>
+            <div>
+                <h3 class="text-2xl font-black text-slate-900">집중 세션 완료!</h3>
+                <p class="text-xs text-slate-500 mt-1">수고하셨습니다! 목표 집중 시간을 성공적으로 달성했습니다.</p>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-900">획득한 보상 코인</span>
+                <span class="text-lg font-black text-amber-600 flex items-center gap-1">
+                    🪙 <span id="earned-coin-amount">300</span> 코인
+                </span>
+            </div>
+            <div class="space-y-2 pt-2">
+                <button onclick="handleCompletionPrompt(true)" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm hover:bg-indigo-700 transition shadow-md shadow-indigo-200">
+                    오늘의 플래너로 이동하기
+                </button>
+                <button onclick="handleCompletionPrompt(false)" class="w-full py-2.5 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs hover:bg-slate-200 transition">
+                    새 타이머 시작하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: D-Day Calendar Target Picker -->
+    <div id="modal-dday-picker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden animate-fade-in p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 border border-slate-100 relative">
+            <button onclick="closeDDayModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg font-bold">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900">목표 D-Day 설정</h3>
+                    <p class="text-xs text-slate-500">목표 날짜를 달력에서 선택하세요.</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">목표 이벤트 이름</label>
+                    <input type="text" id="dday-title-input" value="중요 시험 / 목표 달성일" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">달력 날짜 선택</label>
+                    <input type="date" id="dday-date-picker" onchange="updateDDayModalPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="pt-1">
+                    <span class="block text-[11px] font-semibold text-slate-500 mb-1.5">빠른 미리설정</span>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button onclick="quickSetDDayDays(7)" class="py-1.5 px-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-lg text-xs font-bold transition">+7일</button>
+                        <button onclick="quickSetDDayDays(30)" class="py-1.5 px-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-lg text-xs font-bold transition">+30일</button>
+                        <button onclick="quickSetDDayDays(100)" class="py-1.5 px-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-lg text-xs font-bold transition">+100일</button>
+                        <button onclick="quickSetDDayDays(365)" class="py-1.5 px-2 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 rounded-lg text-xs font-bold transition">+1년</button>
+                    </div>
+                </div>
+
+                <!-- Calculated Result Preview -->
+                <div class="bg-rose-50/70 border border-rose-200 rounded-2xl p-3 text-center space-y-1">
+                    <span class="text-[11px] font-semibold text-rose-700 block">계산된 D-Day 카운트</span>
+                    <span id="dday-modal-result" class="text-2xl font-black text-rose-600 font-mono block">D-100</span>
+                    <span id="dday-modal-subtext" class="text-[11px] text-rose-500 block">오늘 기준 100일 남음</span>
+                </div>
+            </div>
+
+            <button onclick="applyDDayTarget()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl text-xs hover:bg-indigo-700 transition shadow-md shadow-indigo-200">
+                목표 D-Day 플래너에 적용하기
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Theme Design Sheet Preview Popup -->
+    <div id="modal-theme-preview" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden animate-fade-in p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeThemePreviewModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div>
+                <span id="preview-item-type" class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded bg-indigo-100 text-indigo-700 tracking-wider">플래너 테마</span>
+                <h3 id="preview-item-title" class="text-2xl font-black text-slate-900 mt-1">테마 이름</h3>
+                <p id="preview-item-desc" class="text-xs text-slate-500">테마 설명 내용이 표시됩니다.</p>
+            </div>
+
+            <!-- Live Interactive Preview Box -->
+            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-4 bg-slate-50 min-h-[220px] flex items-center justify-center relative overflow-hidden">
+                <div id="preview-stage" class="w-full flex justify-center">
+                    <!-- Preview HTML rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div class="flex items-center justify-between pt-2">
+                <div id="preview-price-tag" class="font-extrabold text-amber-800 text-base">
+                    🪙 0 코인
+                </div>
+                <div id="preview-action-btn-container" class="flex gap-2">
+                    <!-- Dynamic button inserted -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: General Notice Popup -->
+    <div id="modal-notice" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-xs w-full mx-4 shadow-2xl text-center space-y-4">
+            <div id="modal-notice-icon" class="text-3xl text-indigo-600">🔔</div>
+            <h4 id="modal-notice-title" class="font-bold text-slate-900 text-base">알림</h4>
+            <p id="modal-notice-msg" class="text-xs text-slate-600 leading-relaxed">알림 내용 메시지</p>
+            <button onclick="closeNoticeModal()" class="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl text-xs hover:bg-slate-800 transition">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // APP STATE
+        const state = {
+            coins: 1200, // 기본 제공 코인
+            activeTab: 'timer',
+            shopCategory: 'all',
+            currentPreviewItemId: null,
+            timer: {
+                mode: 'single', // 'single' or 'pomodoro'
+                status: 'idle', // 'idle', 'running', 'paused', 'rest'
+                appliedTheme: 'timer-theme-default',
+                singleMinutes: 30,
+                pomodoro: {
+                    workMin: 25,
+                    restMin: 5,
+                    totalCycles: 4,
+                    currentCycle: 1,
+                    isWorkPhase: true
+                },
+                remainingSeconds: 30 * 60,
+                totalTargetSeconds: 30 * 60,
+                intervalId: null,
+                elapsedSecondsThisSession: 0
+            },
+            planner: {
+                appliedTheme: 'theme-default',
+                targetDate: null,
+                targetTitle: '목표 달성일',
+                dailyGoal: '',
+                reflection: '',
+                tasks: [
+                    { id: 1, text: '프로젝트 모듈 설계 문서 작성', done: true },
+                    { id: 2, text: '핵심 타이머 알고리즘 검증', done: true },
+                    { id: 3, text: '디자인 커스텀 스토어 연동', done: false },
+                    { id: 4, text: '스터디 플래너 항목 체크 테스트', done: false }
+                ]
+            },
+            shop: [
+                // Planner Themes
+                { id: 'theme-default', name: '클래식 모던 플래너', price: 0, owned: true, type: 'planner', desc: '깔끔한 하얀색 바탕의 정갈한 서식' },
+                { id: 'theme-pastel-pink', name: '파스텔 핑크 플래너', price: 300, owned: false, type: 'planner', desc: '화사하고 부드러운 핑크빛 감성 서식' },
+                { id: 'theme-midnight-navy', name: '미드나잇 네이비', price: 500, owned: false, type: 'planner', desc: '야간 집중을 위한 고급 다크 네이비' },
+                { id: 'theme-vintage-kraft', name: '크라프트 빈티지', price: 400, owned: false, type: 'planner', desc: '아날로그 종이의 따뜻함을 닮은 테마' },
+                { id: 'theme-sage-green', name: '세이지 그린 플래너', price: 350, owned: false, type: 'planner', desc: '눈이 편안한 마음의 평화 그린 테마' },
+                // Timer Themes
+                { id: 'timer-theme-default', name: '클래식 인디고 타이머', price: 0, owned: true, type: 'timer', desc: '심플하고 명확한 기본 인디고 스타일링' },
+                { id: 'timer-theme-cyberpunk', name: '사이버펑크 네온 시트', price: 450, owned: false, type: 'timer', desc: '미래지향적 화려한 시안 & 네온 핑크' },
+                { id: 'timer-theme-minimal', name: '모노크롬 미니멀 시트', price: 300, owned: false, type: 'timer', desc: '집중력을 극대화하는 딥 블랙 모노톤' },
+                { id: 'timer-theme-retro', name: '우드 앰버 레트로', price: 400, owned: false, type: 'timer', desc: '따뜻한 아날로그 감성의 클래식 앰버' },
+                { id: 'timer-theme-pastel', name: '파스텔 에메랄드 시트', price: 350, owned: false, type: 'timer', desc: '상쾌한 기분을 전해주는 에메랄드 그라데이션' }
+            ],
+            restriction: {
+                mode: 'strict', // 'strict' or 'apps'
+                blockedApps: ['youtube', 'instagram', 'tiktok', 'game']
+            }
+        };
+
+        const APP_LIST = [
+            { id: 'youtube', name: '유튜브 (YouTube)', icon: 'fa-brands fa-youtube', color: 'text-red-500' },
+            { id: 'instagram', name: '인스타그램', icon: 'fa-brands fa-instagram', color: 'text-pink-500' },
+            { id: 'tiktok', name: '틱톡 (TikTok)', icon: 'fa-brands fa-tiktok', color: 'text-slate-200' },
+            { id: 'game', name: '모바일 게임', icon: 'fa-solid fa-gamepad', color: 'text-emerald-400' },
+            { id: 'kakaotalk', name: '메신저 앱', icon: 'fa-solid fa-comment', color: 'text-amber-300' },
+            { id: 'web', name: '웹 서핑 (Safari/Chrome)', icon: 'fa-solid fa-compass', color: 'text-sky-400' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDDayDefault();
+            updateCoinDisplay();
+            renderPlannerTasks();
+            renderShopItems();
+            renderAppRestrictionList();
+            renderSimulatedPhoneApps();
+            updateTimerDisplay();
+            applyTimerTheme(state.timer.appliedTheme);
+        });
+
+        /* --- D-DAY CALENDAR FUNCTIONS --- */
+        function initDDayDefault() {
+            // Default: 100 days from today
+            const target = new Date();
+            target.setDate(target.getDate() + 100);
+            const dateStr = target.toISOString().split('T')[0];
+            state.planner.targetDate = dateStr;
+            updateDDayDisplay();
+        }
+
+        function openDDayModal() {
+            const picker = document.getElementById('dday-date-picker');
+            if (picker && state.planner.targetDate) {
+                picker.value = state.planner.targetDate;
+            }
+            document.getElementById('dday-title-input').value = state.planner.targetTitle;
+            updateDDayModalPreview();
+            document.getElementById('modal-dday-picker').classList.remove('hidden');
+        }
+
+        function closeDDayModal() {
+            document.getElementById('modal-dday-picker').classList.add('hidden');
+        }
+
+        function quickSetDDayDays(days) {
+            const target = new Date();
+            target.setDate(target.getDate() + days);
+            const dateStr = target.toISOString().split('T')[0];
+            document.getElementById('dday-date-picker').value = dateStr;
+            updateDDayModalPreview();
+        }
+
+        function updateDDayModalPreview() {
+            const pickerVal = document.getElementById('dday-date-picker').value;
+            if (!pickerVal) return;
+
+            const res = calculateDDayInfo(pickerVal);
+            document.getElementById('dday-modal-result').innerText = res.tag;
+            document.getElementById('dday-modal-subtext').innerText = res.subtext;
+        }
+
+        function calculateDDayInfo(targetDateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const target = new Date(targetDateStr);
+            target.setHours(0, 0, 0, 0);
+
+            const diffTime = target.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) {
+                return { tag: `D-${diffDays}`, subtext: `오늘 기준 ${diffDays}일 남음 (${targetDateStr})` };
+            } else if (diffDays === 0) {
+                return { tag: 'D-Day', subtext: `오늘이 목표 달성일입니다! (${targetDateStr})` };
+            } else {
+                const pastDays = Math.abs(diffDays);
+                return { tag: `D+${pastDays}`, subtext: `목표일로부터 ${pastDays}일 지남 (${targetDateStr})` };
+            }
+        }
+
+        function applyDDayTarget() {
+            const pickerVal = document.getElementById('dday-date-picker').value;
+            const titleVal = document.getElementById('dday-title-input').value.trim() || '목표 달성일';
+
+            if (!pickerVal) {
+                showNoticeModal('경고', '목표 날짜를 선택해주세요.');
+                return;
+            }
+
+            state.planner.targetDate = pickerVal;
+            state.planner.targetTitle = titleVal;
+            updateDDayDisplay();
+            closeDDayModal();
+
+            const info = calculateDDayInfo(pickerVal);
+            showNoticeModal('목표 D-Day 설정 완료 📅', `'${titleVal}' 목표가 ${info.tag}로 설정되었습니다.`);
+        }
+
+        function updateDDayDisplay() {
+            if (!state.planner.targetDate) return;
+            const info = calculateDDayInfo(state.planner.targetDate);
+            document.getElementById('planner-dday-tag').innerText = info.tag;
+        }
+
+        /* --- SHOP & CATEGORY FUNCTIONS --- */
+        function setShopCategory(category) {
+            state.shopCategory = category;
+            
+            // Button Styles Update
+            document.querySelectorAll('.shop-cat-btn').forEach(btn => {
+                btn.className = "shop-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+            });
+
+            const activeCatBtn = document.getElementById(`shop-cat-${category}`);
+            if (activeCatBtn) {
+                activeCatBtn.className = "shop-cat-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition";
+            }
+
+            renderShopItems();
+        }
+
+        function renderShopItems() {
+            const grid = document.getElementById('shop-items-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const filteredItems = state.shop.filter(item => {
+                if (state.shopCategory === 'all') return true;
+                return item.type === state.shopCategory;
+            });
+
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                const isEquipped = (item.type === 'planner' && state.planner.appliedTheme === item.id) || 
+                                   (item.type === 'timer' && state.timer.appliedTheme === item.id);
+                
+                card.className = "bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition cursor-pointer group";
+                card.onclick = (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                    openThemePreview(item.id);
+                };
+
+                const typeLabel = item.type === 'planner' ? '📚 스터디 플래너' : '⏱️ 타이머 시트';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-[10px] font-extrabold px-2.5 py-1 rounded bg-slate-100 text-slate-600 uppercase">${typeLabel}</span>
+                            ${isEquipped ? '<span class="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">적용 중</span>' : ''}
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base flex items-center justify-between">
+                            <span>${item.name}</span>
+                            <span class="text-xs text-indigo-500 font-semibold group-hover:underline"><i class="fa-solid fa-eye mr-1"></i>미리보기</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">${item.desc}</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100" onclick="event.stopPropagation();">
+                        <span class="font-extrabold text-amber-800 text-sm flex items-center gap-1">
+                            🪙 ${item.price === 0 ? '기본 제공' : item.price + ' 코인'}
+                        </span>
+                        <div class="flex gap-2">
+                            <button onclick="openThemePreview('${item.id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                                미리보기
+                            </button>
+                            ${renderShopButtonHtml(item, isEquipped)}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openThemePreview(itemId) {
+            const item = state.shop.find(s => s.id === itemId);
+            if (!item) return;
+
+            state.currentPreviewItemId = itemId;
+
+            document.getElementById('preview-item-type').innerText = item.type === 'planner' ? '📚 스터디 플래너 테마' : '⏱️ 타이머 디자인 시트';
+            document.getElementById('preview-item-title').innerText = item.name;
+            document.getElementById('preview-item-desc').innerText = item.desc;
+            document.getElementById('preview-price-tag').innerText = item.price === 0 ? '🪙 기본 제공' : `🪙 ${item.price} 코인`;
+
+            const stage = document.getElementById('preview-stage');
+            stage.innerHTML = '';
+
+            const isEquipped = (item.type === 'planner' && state.planner.appliedTheme === item.id) || 
+                               (item.type === 'timer' && state.timer.appliedTheme === item.id);
+
+            // Render Preview Layout based on type
+            if (item.type === 'planner') {
+                stage.innerHTML = `
+                    <div class="${item.id} planner-container paper-grid rounded-2xl p-4 border w-full max-w-md shadow-sm transition">
+                        <div class="planner-header rounded-xl p-3 border mb-3 flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">PREVIEW PLANNER</span>
+                                <h4 class="text-base font-bold font-batang">오늘의 스터디 플래너</h4>
+                            </div>
+                            <span class="text-xs font-extrabold planner-accent">D-100</span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center gap-2 p-2 bg-white/70 rounded-lg border planner-border">
+                                <input type="checkbox" checked disabled class="w-4 h-4 text-indigo-600">
+                                <span class="line-through opacity-70">핵심 스터디 목표 달성하기</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 bg-white/70 rounded-lg border planner-border">
+                                <input type="checkbox" disabled class="w-4 h-4 text-indigo-600">
+                                <span>나만의 맞춤 스케줄링 진행</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Timer Theme Preview Layout
+                stage.innerHTML = `
+                    <div class="${item.id} rounded-2xl p-6 border w-full max-w-xs shadow-md text-center flex flex-col items-center justify-center">
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-500/10 mb-2">집중 모드</span>
+                        <div class="relative w-32 h-32 my-2 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="44" stroke-width="8" class="opacity-20 stroke-current" fill="transparent"/>
+                                <circle cx="50" cy="50" r="44" stroke-width="8" stroke-dasharray="276.46" stroke-dashoffset="70" stroke-linecap="round" class="ring-color stroke-current" fill="transparent"/>
+                            </svg>
+                            <span class="timer-text text-2xl font-black font-mono absolute">25:00</span>
+                        </div>
+                        <span class="text-xs opacity-80 font-semibold mt-1">${item.name} 샘플</span>
+                    </div>
+                `;
+            }
+
+            // Action Buttons
+            const btnContainer = document.getElementById('preview-action-btn-container');
+            btnContainer.innerHTML = '';
+
+            if (isEquipped) {
+                btnContainer.innerHTML = `<button disabled class="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs">현재 적용됨</button>`;
+            } else if (item.owned) {
+                btnContainer.innerHTML = `<button onclick="applyThemeFromPreview('${item.id}')" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition">이 디자인 적용하기</button>`;
+            } else {
+                btnContainer.innerHTML = `<button onclick="buyThemeFromPreview('${item.id}')" class="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition">구매 후 바로 적용</button>`;
+            }
+
+            document.getElementById('modal-theme-preview').classList.remove('hidden');
+        }
+
+        function closeThemePreviewModal() {
+            document.getElementById('modal-theme-preview').classList.add('hidden');
+        }
+
+        function applyThemeFromPreview(itemId) {
+            const item = state.shop.find(s => s.id === itemId);
+            if (!item) return;
+
+            if (item.type === 'planner') {
+                applyPlannerTheme(itemId);
+            } else {
+                applyTimerTheme(itemId);
+            }
+            closeThemePreviewModal();
+            showNoticeModal('적용 완료 ✨', `'${item.name}' 디자인이 성공적으로 적용되었습니다.`);
+        }
+
+        function buyThemeFromPreview(itemId) {
+            const item = state.shop.find(s => s.id === itemId);
+            if (!item) return;
+
+            if (state.coins < item.price) {
+                showNoticeModal('코인 부족', '코인이 부족합니다! 타이머를 실행하여 집중 시간에 대한 코인을 모아보세요.');
+                return;
+            }
+
+            state.coins -= item.price;
+            item.owned = true;
+            updateCoinDisplay();
+
+            if (item.type === 'planner') {
+                applyPlannerTheme(itemId);
+            } else {
+                applyTimerTheme(itemId);
+            }
+
+            closeThemePreviewModal();
+            showNoticeModal('구매 및 적용 완료! 🎉', `'${item.name}' 디자인을 구매하고 즉시 적용했습니다.`);
+        }
+
+        function applyPlannerTheme(themeId) {
+            state.planner.appliedTheme = themeId;
+            const plannerPaper = document.getElementById('planner-paper');
+            if (plannerPaper) {
+                plannerPaper.className = `${themeId} planner-container paper-grid rounded-3xl p-6 sm:p-8 border-2 shadow-xl transition-all duration-300`;
+            }
+            renderShopItems();
+        }
+
+        function applyTimerTheme(themeId) {
+            state.timer.appliedTheme = themeId;
+            const timerCard = document.getElementById('main-timer-card');
+            if (timerCard) {
+                timerCard.className = `${themeId} rounded-3xl p-8 border shadow-lg text-center relative overflow-hidden flex flex-col items-center justify-center transition-all duration-300`;
+            }
+            renderShopItems();
+        }
+
+        function renderShopButtonHtml(item, isEquipped) {
+            if (isEquipped) {
+                return `<button disabled class="px-4 py-2 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs">적용됨</button>`;
+            }
+            if (item.owned) {
+                return `<button onclick="applyThemeFromPreview('${item.id}')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition">적용하기</button>`;
+            }
+            return `<button onclick="buyThemeFromPreview('${item.id}')" class="px-4 py-2 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition">구매하기</button>`;
+        }
+
+        function switchTab(tabName) {
+            state.activeTab = tabName;
+            
+            // Hide all tab contents
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Show target
+            document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
+
+            // Update Tab Nav Button Styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'border-indigo-600');
+                btn.classList.add('text-slate-500', 'border-transparent');
+            });
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-500', 'border-transparent');
+                activeBtn.classList.add('text-indigo-600', 'border-indigo-600');
+            }
+        }
+
+        function setTimerMode(mode) {
+            if (state.timer.status === 'running') {
+                showNoticeModal('알림', '타이머가 작동 중일 때는 모드를 변경할 수 없습니다.');
+                return;
+            }
+            state.timer.mode = mode;
+            const singleBtn = document.getElementById('mode-single-btn');
+            const pomoBtn = document.getElementById('mode-pomodoro-btn');
+            const singleSetup = document.getElementById('single-timer-setup');
+            const pomoSetup = document.getElementById('pomodoro-timer-setup');
+            const cycleBadge = document.getElementById('pomo-cycle-badge');
+
+            if (mode === 'single') {
+                singleBtn.className = "px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+                pomoBtn.className = "px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition";
+                singleSetup.classList.remove('hidden');
+                pomoSetup.classList.add('hidden');
+                cycleBadge.classList.add('hidden');
+                setSingleTimerMinutes(state.timer.singleMinutes);
+            } else {
+                pomoBtn.className = "px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+                singleBtn.className = "px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition";
+                pomoSetup.classList.remove('hidden');
+                singleSetup.classList.add('hidden');
+                cycleBadge.classList.remove('hidden');
+                initPomodoroValues();
+            }
+        }
+
+        function selectPresetTime(minutes) {
+            setSingleTimerMinutes(minutes);
+        }
+
+        function applyCustomSingleTime() {
+            const input = document.getElementById('custom-single-minutes');
+            const val = parseInt(input.value, 10);
+            if (isNaN(val) || val < 10) {
+                showNoticeModal('경고', '사용자 정의 타이머 시간은 최소 10분 이상이어야 합니다.');
+                return;
+            }
+            setSingleTimerMinutes(val);
+            showNoticeModal('설정 완료', `${val}분 타이머로 설정되었습니다.`);
+        }
+
+        function setSingleTimerMinutes(min) {
+            state.timer.singleMinutes = min;
+            state.timer.totalTargetSeconds = min * 60;
+            state.timer.remainingSeconds = min * 60;
+            updateTimerDisplay();
+        }
+
+        function initPomodoroValues() {
+            const workM = parseInt(document.getElementById('pomo-work-min').value, 10) || 25;
+            const restM = parseInt(document.getElementById('pomo-rest-min').value, 10) || 5;
+            const cycles = parseInt(document.getElementById('pomo-count').value, 10) || 4;
+
+            state.timer.pomodoro.workMin = workM;
+            state.timer.pomodoro.restMin = restM;
+            state.timer.pomodoro.totalCycles = cycles;
+            state.timer.pomodoro.currentCycle = 1;
+            state.timer.pomodoro.isWorkPhase = true;
+
+            state.timer.totalTargetSeconds = workM * 60;
+            state.timer.remainingSeconds = workM * 60;
+
+            updatePomodoroBadges();
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (state.timer.status === 'running') {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (state.timer.mode === 'pomodoro' && state.timer.status === 'idle') {
+                initPomodoroValues();
+            }
+
+            state.timer.status = 'running';
+            document.getElementById('timer-start-btn').innerHTML = `<i class="fa-solid fa-pause mr-2"></i> 일시정지`;
+            document.getElementById('timer-start-btn').classList.replace('bg-indigo-600', 'bg-amber-600');
+            document.getElementById('timer-stop-btn').disabled = false;
+            updateStatusBadge('집중 진행 중', 'bg-emerald-100 text-emerald-700');
+
+            if (state.timer.intervalId) clearInterval(state.timer.intervalId);
+
+            state.timer.intervalId = setInterval(() => {
+                if (state.timer.remainingSeconds > 0) {
+                    state.timer.remainingSeconds--;
+                    state.timer.elapsedSecondsThisSession++;
+                    updateTimerDisplay();
+                } else {
+                    handleTimerEnd();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            state.timer.status = 'paused';
+            clearInterval(state.timer.intervalId);
+            document.getElementById('timer-start-btn').innerHTML = `<i class="fa-solid fa-play mr-2"></i> 재개`;
+            document.getElementById('timer-start-btn').classList.replace('bg-amber-600', 'bg-indigo-600');
+            updateStatusBadge('일시 중단됨', 'bg-amber-100 text-amber-700');
+        }
+
+        function stopTimer() {
+            if (confirm('타이머를 중단하시겠습니까? 진척 시간은 보상 처리됩니다.')) {
+                clearInterval(state.timer.intervalId);
+                rewardCoinsForElapsed();
+                resetTimerState();
+            }
+        }
+
+        function resetTimerState() {
+            state.timer.status = 'idle';
+            state.timer.elapsedSecondsThisSession = 0;
+            clearInterval(state.timer.intervalId);
+
+            document.getElementById('timer-start-btn').innerHTML = `<i class="fa-solid fa-play mr-2"></i> 시작`;
+            document.getElementById('timer-start-btn').className = "flex-1 py-3.5 px-6 rounded-2xl bg-indigo-600 text-white font-bold text-base shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition";
+            document.getElementById('timer-stop-btn').disabled = true;
+
+            if (state.timer.mode === 'single') {
+                setSingleTimerMinutes(state.timer.singleMinutes);
+            } else {
+                initPomodoroValues();
+            }
+            updateStatusBadge('준비됨', 'bg-slate-100 text-slate-600');
+        }
+
+        function handleTimerEnd() {
+            clearInterval(state.timer.intervalId);
+
+            if (state.timer.mode === 'single') {
+                const earned = rewardCoinsForElapsed();
+                showTimerCompletionModal(earned);
+                resetTimerState();
+            } else {
+                // Pomodoro Mode Loop Handling
+                const p = state.timer.pomodoro;
+                if (p.isWorkPhase) {
+                    rewardCoinsForElapsed();
+                    p.isWorkPhase = false;
+                    state.timer.totalTargetSeconds = p.restMin * 60;
+                    state.timer.remainingSeconds = p.restMin * 60;
+                    showNoticeModal('휴식 시간 시작! ☕', `${p.restMin}분 동안 휴식을 취하세요.`);
+                    updateStatusBadge('휴식 중', 'bg-blue-100 text-blue-700');
+                    startTimer();
+                } else {
+                    if (p.currentCycle < p.totalCycles) {
+                        p.currentCycle++;
+                        p.isWorkPhase = true;
+                        state.timer.totalTargetSeconds = p.workMin * 60;
+                        state.timer.remainingSeconds = p.workMin * 60;
+                        showNoticeModal('공부/업무 재개! ✍️', `${p.currentCycle}번째 세트 시작입니다.`);
+                        updateStatusBadge('집중 진행 중', 'bg-emerald-100 text-emerald-700');
+                        startTimer();
+                    } else {
+                        const earned = Math.floor((p.workMin * p.totalCycles) / 5) * 50;
+                        showTimerCompletionModal(earned);
+                        resetTimerState();
+                    }
+                }
+                updatePomodoroBadges();
+            }
+        }
+
+        function rewardCoinsForElapsed() {
+            // 5분당 50코인
+            const minutesElapsed = Math.floor(state.timer.elapsedSecondsThisSession / 60);
+            const coinsEarned = Math.floor(minutesElapsed / 5) * 50;
+            state.coins += coinsEarned;
+            
+            updateTotalFocusTime(minutesElapsed);
+            updateCoinDisplay();
+
+            state.timer.elapsedSecondsThisSession = 0;
+            return coinsEarned;
+        }
+
+        function updateTimerDisplay() {
+            const rem = state.timer.remainingSeconds;
+            const m = Math.floor(rem / 60).toString().padStart(2, '0');
+            const s = (rem % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+
+            const circle = document.getElementById('timer-progress-circle');
+            const total = state.timer.totalTargetSeconds || 1;
+            const progressRatio = rem / total;
+            const circumference = 2 * Math.PI * 44;
+            const offset = circumference * (1 - progressRatio);
+            circle.style.strokeDashoffset = offset;
+
+            const estimatedCoins = Math.floor((total / 60) / 5) * 50;
+            document.getElementById('session-coin-preview').innerText = estimatedCoins;
+        }
+
+        function updateStatusBadge(text, colorClasses) {
+            const badge = document.getElementById('timer-status-badge');
+            badge.innerText = text;
+            badge.className = `px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${colorClasses}`;
+        }
+
+        function updatePomodoroBadges() {
+            const cycleBadge = document.getElementById('pomo-cycle-badge');
+            const p = state.timer.pomodoro;
+            const phase = p.isWorkPhase ? '공부' : '휴식';
+            cycleBadge.innerText = `${p.currentCycle} / ${p.totalCycles} 세트 (${phase})`;
+        }
+
+        function updateCoinDisplay() {
+            document.getElementById('user-coin-count').innerText = state.coins.toLocaleString();
+            document.getElementById('shop-coin-display').innerText = state.coins.toLocaleString();
+        }
+
+        let totalFocusMinutes = 105;
+
+        function updateTotalFocusTime(addedMinutes) {
+            totalFocusMinutes += addedMinutes;
+            const h = Math.floor(totalFocusMinutes / 60).toString().padStart(2, '0');
+            const m = (totalFocusMinutes % 60).toString().padStart(2, '0');
+            document.getElementById('total-focus-time-display').innerText = `${h}시간 ${m}분`;
+        }
+
+        function renderPlannerTasks() {
+            const container = document.getElementById('planner-task-container');
+            container.innerHTML = '';
+
+            let completed = 0;
+            state.planner.tasks.forEach(task => {
+                if (task.done) completed++;
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-3 rounded-xl border bg-white/70 backdrop-blur transition ${task.done ? 'opacity-60 bg-slate-50' : ''}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTaskDone(${task.id})" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer">
+                        <span class="text-sm font-semibold ${task.done ? 'line-through text-slate-400' : ''}">${escapeHtml(task.text)}</span>
+                    </div>
+                    <button onclick="deletePlannerTask(${task.id})" class="text-slate-400 hover:text-rose-500 text-xs px-2 py-1">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(item);
+            });
+
+            const total = state.planner.tasks.length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('planner-progress-bar').style.width = `${percent}%`;
+            document.getElementById('planner-completion-percent').innerText = `${percent}%`;
+            document.getElementById('planner-completed-count').innerText = `${completed} / ${total} 완료`;
+        }
+
+        function toggleTaskDone(id) {
+            const task = state.planner.tasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                renderPlannerTasks();
+            }
+        }
+
+        function addPlannerTask() {
+            const text = prompt('새로운 할 일 항목을 입력하세요:');
+            if (text && text.trim() !== '') {
+                state.planner.tasks.push({
+                    id: Date.now(),
+                    text: text.trim(),
+                    done: false
+                });
+                renderPlannerTasks();
+            }
+        }
+
+        function deletePlannerTask(id) {
+            state.planner.tasks = state.planner.tasks.filter(t => t.id !== id);
+            renderPlannerTasks();
+        }
+
+        function updateRestrictMode(mode) {
+            state.restriction.mode = mode;
+            const strictBox = document.getElementById('mode-strict-box');
+            const appsBox = document.getElementById('mode-apps-box');
+
+            if (mode === 'strict') {
+                strictBox.className = "relative flex p-4 rounded-xl border-2 cursor-pointer border-indigo-600 bg-indigo-50/40";
+                appsBox.className = "relative flex p-4 rounded-xl border-2 cursor-pointer border-slate-200";
+            } else {
+                appsBox.className = "relative flex p-4 rounded-xl border-2 cursor-pointer border-indigo-600 bg-indigo-50/40";
+                strictBox.className = "relative flex p-4 rounded-xl border-2 cursor-pointer border-slate-200";
+            }
+        }
+
+        function renderAppRestrictionList() {
+            const listContainer = document.getElementById('app-checkbox-list');
+            listContainer.innerHTML = '';
+
+            APP_LIST.forEach(app => {
+                const isBlocked = state.restriction.blockedApps.includes(app.id);
+                const label = document.createElement('label');
+                label.className = `flex items-center p-3 rounded-xl border cursor-pointer hover:bg-slate-50 transition ${isBlocked ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'}`;
+                label.innerHTML = `
+                    <input type="checkbox" ${isBlocked ? 'checked' : ''} onchange="toggleAppBlock('${app.id}')" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 mr-2.5">
+                    <i class="${app.icon} ${app.color} text-lg mr-2"></i>
+                    <span class="text-xs font-semibold text-slate-700">${app.name}</span>
+                `;
+                listContainer.appendChild(label);
+            });
+        }
+
+        function toggleAppBlock(appId) {
+            if (state.restriction.blockedApps.includes(appId)) {
+                state.restriction.blockedApps = state.restriction.blockedApps.filter(id => id !== appId);
+            } else {
+                state.restriction.blockedApps.push(appId);
+            }
+            renderAppRestrictionList();
+        }
+
+        function renderSimulatedPhoneApps() {
+            const simContainer = document.getElementById('simulated-phone-apps');
+            simContainer.innerHTML = '';
+
+            APP_LIST.forEach(app => {
+                const btn = document.createElement('button');
+                btn.onclick = () => simulateAppLaunch(app.id, app.name);
+                btn.className = "flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 active:scale-95 transition group";
+                btn.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-xl mb-1.5 shadow-inner group-hover:border-indigo-500">
+                        <i class="${app.icon} ${app.color}"></i>
+                    </div>
+                    <span class="text-[10px] text-slate-300 font-medium truncate w-full text-center">${app.name.split(' ')[0]}</span>
+                `;
+                simContainer.appendChild(btn);
+            });
+        }
+
+        function simulateAppLaunch(appId, appName) {
+            if (state.timer.status !== 'running') {
+                showNoticeModal('시뮬레이션 안내', `'${appName}' 앱 실행 시뮬레이션입니다. (타이머 작동 중에 클릭하면 차단 메시지가 발생합니다.)`);
+                return;
+            }
+
+            if (state.restriction.mode === 'strict' || state.restriction.blockedApps.includes(appId)) {
+                switchTab('timer');
+                showNoticeModal('🚫 사용 차단!', `집중 타이머가 동작 중입니다! '${appName}' 앱 사용이 차단되어 타이머 화면으로 강제 이동했습니다.`);
+            } else {
+                showNoticeModal('허용된 앱', `'${appName}' 앱은 현재 차단 목록에 포함되지 않아 사용 가능합니다.`);
+            }
+        }
+
+        function showTimerCompletionModal(earnedCoins) {
+            document.getElementById('earned-coin-amount').innerText = earnedCoins;
+            document.getElementById('modal-timer-complete').classList.remove('hidden');
+        }
+
+        function handleCompletionPrompt(goToPlanner) {
+            document.getElementById('modal-timer-complete').classList.add('hidden');
+            if (goToPlanner) {
+                switchTab('planner');
+            } else {
+                switchTab('timer');
+            }
+        }
+
+        function showNoticeModal(title, msg) {
+            document.getElementById('modal-notice-title').innerText = title;
+            document.getElementById('modal-notice-msg').innerText = msg;
+            document.getElementById('modal-notice').classList.remove('hidden');
+        }
+
+        function closeNoticeModal() {
+            document.getElementById('modal-notice').classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
